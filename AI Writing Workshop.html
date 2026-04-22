@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writing &amp; Machines — A Faculty Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..900;1,8..60,300..900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #0f0e0c;
+      --surface: #1a1916;
+      --border: #2e2b25;
+      --text: #f0ece4;
+      --text-muted: #7a7670;
+      --amber: oklch(72% 0.16 65);
+      --red: oklch(52% 0.18 22);
+      --ai-text: oklch(70% 0.06 230);
+      --mono: 'IBM Plex Mono', monospace;
+      --serif: 'Source Serif 4', Georgia, serif;
+      --display: 'DM Serif Display', Georgia, serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--serif);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    ::selection { background: var(--amber); color: #0f0e0c; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
+
+    textarea, input {
+      font-family: var(--serif);
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus, input:focus { border-color: var(--amber); }
+
+    button { font-family: var(--mono); }
+
+    /* Tweaks panel */
+    #tweaks-panel {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 20px 24px;
+      width: 260px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    }
+    #tweaks-panel.visible { display: block; }
+    .tweak-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      margin-top: 14px;
+    }
+    .tweak-label:first-child { margin-top: 0; }
+    .tweak-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .tweak-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tweak-btn.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: rgba(232,151,10,0.06);
+    }
+  </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<!-- Tweaks Panel -->
+<div id="tweaks-panel">
+  <div style="font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+    Tweaks
+  </div>
+  <div class="tweak-label">Facilitator Mode</div>
+  <div class="tweak-row" id="facilitator-btns">
+    <button class="tweak-btn" data-fac="on">Guide On</button>
+    <button class="tweak-btn active" data-fac="off">Guide Off</button>
+  </div>
+  <div class="tweak-label">Workshop Stance</div>
+  <div class="tweak-row" id="stance-btns">
+    <button class="tweak-btn active" data-stance="skeptical">Skeptical</button>
+    <button class="tweak-btn" data-stance="balanced">Balanced</button>
+    <button class="tweak-btn" data-stance="open">Open</button>
+  </div>
+  <div class="tweak-label">Type Scale</div>
+  <div class="tweak-row" id="scale-btns">
+    <button class="tweak-btn" data-scale="0.9">Compact</button>
+    <button class="tweak-btn active" data-scale="1">Default</button>
+    <button class="tweak-btn" data-scale="1.1">Spacious</button>
+  </div>
+  <div class="tweak-label">AI Text Color</div>
+  <div class="tweak-row" id="aicolor-btns">
+    <button class="tweak-btn active" data-aicolor="oklch(70% 0.06 230)">Blue</button>
+    <button class="tweak-btn" data-aicolor="oklch(70% 0.08 140)">Green</button>
+    <button class="tweak-btn" data-aicolor="var(--text-muted)">Neutral</button>
+  </div>
+</div>
+
+<script type="text/babel" src="workshop-sections.jsx"></script>
+
+<script>
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "stance": "skeptical",
+  "scale": "1",
+  "aicolor": "oklch(70% 0.06 230)"
+}/*EDITMODE-END*/;
+</script>
+
+<script type="text/babel">
+
+function App() {
+  const [facilitator, setFacilitator] = React.useState(false);
+  React.useEffect(() => { window.__setFacilitator = setFacilitator; }, []);
+  return (
+    <FacilitatorContext.Provider value={facilitator}>
+      <SiteNav />
+      <HeroSection />
+      <CapabilitySection />
+      <InteractionsSection />
+      <ScenariosSection />
+      <FrameworksSection />
+      <PositionSection />
+      <Footer />
+    </FacilitatorContext.Provider>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+
+<script>
+// ── Tweaks ──────────────────────────────────────────────────────────
+const tweaksPanel = document.getElementById("tweaks-panel");
+
+window.addEventListener("message", e => {
+  if (e.data?.type === "__activate_edit_mode") tweaksPanel.classList.add("visible");
+  if (e.data?.type === "__deactivate_edit_mode") tweaksPanel.classList.remove("visible");
+});
+window.parent.postMessage({ type: "__edit_mode_available" }, "*");
+
+function setTweak(key, value) {
+  window.parent.postMessage({ type: "__edit_mode_set_keys", edits: { [key]: value } }, "*");
+}
+
+// Stance
+document.getElementById("stance-btns").addEventListener("click", e => {
+  const btn = e.target.closest("[data-stance]");
+  if (!btn) return;
+  document.querySelectorAll("[data-stance]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  const stance = btn.dataset.stance;
+  setTweak("stance", stance);
+
+  // Adjust hero text based on stance
+  const stanceTextMap = {
+    skeptical: "Your students are already using it. The question isn't whether AI will change first-year writing — it already has.",
+    balanced: "AI is reshaping what writing instruction means. This workshop helps you understand what's changed — and what hasn't.",
+    open: "AI tools offer new possibilities for writing pedagogy. This workshop explores how to engage with them thoughtfully."
+  };
+  const heroP = document.querySelector("[data-hero-intro]");
+  if (heroP) heroP.textContent = stanceTextMap[stance];
+});
+
+// Scale
+document.getElementById("scale-btns").addEventListener("click", e => {
+  const btn = e.target.closest("[data-scale]");
+  if (!btn) return;
+  document.querySelectorAll("[data-scale]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  const scale = parseFloat(btn.dataset.scale);
+  document.documentElement.style.fontSize = (16 * scale) + "px";
+  setTweak("scale", btn.dataset.scale);
+});
+
+// AI Color
+document.getElementById("aicolor-btns").addEventListener("click", e => {
+  const btn = e.target.closest("[data-aicolor]");
+  if (!btn) return;
+  document.querySelectorAll("[data-aicolor]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  const color = btn.dataset.aicolor;
+  document.documentElement.style.setProperty("--ai-text", color);
+  setTweak("aicolor", color);
+});
+
+// Facilitator toggle
+document.getElementById("facilitator-btns").addEventListener("click", e => {
+  const btn = e.target.closest("[data-fac]");
+  if (!btn) return;
+  document.querySelectorAll("[data-fac]").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  if (window.__setFacilitator) window.__setFacilitator(btn.dataset.fac === "on");
+});
+
+// Apply saved tweaks on load
+(function applyDefaults() {
+  const d = TWEAK_DEFAULTS;
+  if (d.scale && d.scale !== "1") {
+    document.documentElement.style.fontSize = (16 * parseFloat(d.scale)) + "px";
+    document.querySelectorAll("[data-scale]").forEach(b => {
+      b.classList.toggle("active", b.dataset.scale === d.scale);
+    });
+  }
+  if (d.aicolor) {
+    document.documentElement.style.setProperty("--ai-text", d.aicolor);
+    document.querySelectorAll("[data-aicolor]").forEach(b => {
+      b.classList.toggle("active", b.dataset.aicolor === d.aicolor);
+    });
+  }
+  if (d.stance) {
+    document.querySelectorAll("[data-stance]").forEach(b => {
+      b.classList.toggle("active", b.dataset.stance === d.stance);
+    });
+  }
+})();
+</script>
+
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 120 80" xmlns="http://www.w3.org/2000/svg" style="background:#0f0e0c">
+    <rect x="18" y="18" width="40" height="3" fill="#f0ece4" opacity="0.9" rx="1"/>
+    <rect x="18" y="26" width="28" height="2" fill="#f0ece4" opacity="0.4" rx="1"/>
+    <rect x="18" y="34" width="84" height="1" fill="#2e2b25"/>
+    <rect x="18" y="40" width="36" height="2" fill="#e8970a" opacity="0.8" rx="1"/>
+    <rect x="18" y="47" width="84" height="1.5" fill="#f0ece4" opacity="0.15" rx="1"/>
+    <rect x="18" y="53" width="60" height="1.5" fill="#f0ece4" opacity="0.1" rx="1"/>
+    <rect x="18" y="59" width="72" height="1.5" fill="#f0ece4" opacity="0.1" rx="1"/>
+    <rect x="72" y="18" width="30" height="3" fill="#e8970a" opacity="0.6" rx="1"/>
+  </svg>
+</template>
+
+</body>
+</html>
